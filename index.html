@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Barangay Waste Management</title>
+<style>
+:root{--bg:#f4f8f2;--card:#fff;--tx:#1d2b22;--mut:#5b6b60;--pri:#2e7d32;--pri2:#e3f1e2;--bd:#d6e2d3;--bio:#2e7d32;--rec:#1565c0;--res:#6d4c41;--haz:#c62828}
+@media (prefers-color-scheme:dark){:root{--bg:#101a14;--card:#18251d;--tx:#e6f0e8;--mut:#9db1a3;--pri:#66bb6a;--pri2:#1f3326;--bd:#2c4033;--bio:#66bb6a;--rec:#64b5f6;--res:#bcaaa4;--haz:#ef5350}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:var(--pri);color:#fff;padding:18px 20px}
+header h1{margin:0;font-size:1.25rem}header p{margin:2px 0 0;opacity:.9;font-size:.9rem}
+@media (prefers-color-scheme:dark){header{color:#0b1a0f}}
+main{max-width:920px;margin:0 auto;padding:16px}
+section{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px;margin-bottom:16px}
+h2{margin:0 0 4px;font-size:1.15rem}.sub{color:var(--mut);margin:0 0 12px;font-size:.92rem}
+input,select,textarea,button{font:inherit;color:var(--tx)}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--bg)}
+button{cursor:pointer;border:0;border-radius:10px;padding:10px 16px;background:var(--pri);color:#fff;font-weight:600}
+@media (prefers-color-scheme:dark){button{color:#0b1a0f}}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row input{flex:1;min-width:180px}
+.chip{background:var(--pri2);color:var(--tx);font-weight:500;padding:6px 12px;border-radius:99px;font-size:.88rem}
+.out{border-left:6px solid var(--c);background:var(--bg);padding:12px 14px;border-radius:10px;margin-top:14px}.out b{color:var(--c)}
+.table{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:420px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--bd)}tr.today td{background:var(--pri2);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.tip{border:1px solid var(--bd);border-radius:12px;padding:12px;border-top:5px solid var(--c)}.tip h3{margin:0 0 4px;font-size:1rem;color:var(--c)}.tip p{margin:0;font-size:.9rem;color:var(--mut)}
+form{display:grid;gap:10px}label{font-size:.9rem;color:var(--mut)}
+.rep{border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:.92rem}.rep small{color:var(--mut)}.rep select{width:auto;padding:4px 8px}
+.msg{font-size:.9rem;margin:6px 0 0}footer{text-align:center;color:var(--mut);font-size:.8rem;padding:10px 16px 24px}
+#botBtn{position:fixed;right:16px;bottom:16px;width:56px;height:56px;border-radius:50%;font-size:1.6rem;padding:0;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:20}
+#bot{position:fixed;right:16px;bottom:84px;width:min(360px,calc(100vw - 32px));height:min(480px,70vh);background:var(--card);border:1px solid var(--bd);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden;z-index:20}
+#bot[hidden]{display:none}
+#bot .bh{background:var(--pri);color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
+@media (prefers-color-scheme:dark){#bot .bh{color:#0b1a0f}}
+#botX{background:transparent;color:inherit;padding:0 4px;font-size:1.1rem}
+#bm{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+#bm .m{max-width:85%;padding:8px 12px;border-radius:12px;font-size:.92rem;white-space:pre-wrap}
+#bm .bot{background:var(--pri2);align-self:flex-start}
+#bm .me{background:var(--pri);color:#fff;align-self:flex-end}
+@media (prefers-color-scheme:dark){#bm .me{color:#0b1a0f}}
+#bf{display:flex;gap:6px;padding:10px;border-top:1px solid var(--bd)}
+#bf input{flex:1}
+</style>
+</head>
+<body>
+<header><h1>♻ Barangay Smart Waste Hub</h1><p>Segregate right. Know the schedule. Report problems. Keep our barangay clean.</p></header>
+<main>
+
+<section>
+<h2>🤖 Smart Segregation Assistant</h2>
+<p class="sub">Type an item to see which bin it belongs in.</p>
+<div class="row"><input id="q" placeholder="e.g. plastic bottle, banana peel, used battery" aria-label="Item"><button id="go">Check</button></div>
+<div class="row" style="margin-top:8px" id="chips"></div>
+<div id="res" aria-live="polite"></div>
+</section>
+
+<section>
+<h2>🗓 Garbage Collection Schedule</h2>
+<p class="sub">Edit the SCHEDULE array in this file to match your barangay. Today is highlighted.</p>
+<div class="table"><table><thead><tr><th>Day</th><th>Waste type</th><th>Time</th></tr></thead><tbody id="sched"></tbody></table></div>
+</section>
+
+<section>
+<h2>♻ Recycling Information</h2>
+<p class="sub">Know your four bins.</p>
+<div class="grid" id="tips"></div>
+</section>
+
+<section>
+<h2>📣 Community Reporting</h2>
+<p class="sub">Report missed collections, illegal dumping, or clogged drains.</p>
+<form id="rf">
+<select id="rt" aria-label="Issue type"><option>Missed collection</option><option>Illegal dumping</option><option>Clogged drainage</option><option>Overflowing bin</option><option>Other</option></select>
+<input id="rl" placeholder="Location (street / purok)" maxlength="120" required>
+<textarea id="rd" rows="3" placeholder="Describe the problem" maxlength="1000" required></textarea>
+<button type="submit">Submit report</button>
+</form>
+<p class="msg" id="rmsg"></p>
+<div id="reps"></div>
+</section>
+
+<section>
+<h2>📝 Community Survey</h2>
+<p class="sub">Help us understand awareness, readiness, and acceptance of digital waste management. Rate 1 (very low) to 5 (very high).</p>
+<form id="sf">
+<div class="row"><select id="sr" aria-label="Role"><option value="">I am a…</option><option>Resident</option><option>Barangay official</option></select>
+<select id="sa" aria-label="Age group"><option value="">Age group</option><option>Under 18</option><option>18-30</option><option>31-45</option><option>46-60</option><option>61+</option></select></div>
+<label>My awareness of proper waste segregation</label><select id="s1"></select>
+<label>My household’s readiness to practice segregation</label><select id="s2"></select>
+<label>My willingness to use a website or app for waste management</label><select id="s3"></select>
+<textarea id="sc" rows="2" maxlength="500" placeholder="Comments (optional)"></textarea>
+<button type="submit">Submit survey</button>
+</form>
+<p class="msg" id="smsg"></p>
+</section>
+
+<section>
+<h2>🔐 Barangay Official Login</h2>
+<div id="loginbox">
+<form id="lf"><input id="lu" placeholder="Username" autocomplete="username"><input id="lp" type="password" placeholder="Password" autocomplete="current-password"><button type="submit">Log in</button></form>
+<p class="msg" id="lmsg"></p>
+</div>
+<div id="adminbox" hidden>
+<p>You are logged in. You can now change report statuses above.</p>
+<div id="stats" class="out" style="--c:var(--pri)"></div>
+<button id="lo" style="margin-top:10px">Log out</button>
+</div>
+</section>
+</main>
+<button id="botBtn" aria-label="Open EcoBot assistant">🤖</button>
+<div id="bot" hidden>
+<div class="bh"><b>🌿 EcoBot</b><button id="botX" aria-label="Close">✕</button></div>
+<div id="bm" aria-live="polite"></div>
+<form id="bf"><input id="bi" placeholder="Ask about waste, schedules…" maxlength="300" autocomplete="off" aria-label="Message"><button type="submit">Send</button></form>
+</div>
+<footer>Prototype for research: “Assessing Community Readiness, Environmental Awareness, and Digital Technology Acceptance in Waste Management.”</footer>
+
+<script>
+var API="api.php";
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+async function call(action,body){
+  var o={credentials:"same-origin"};
+  if(body){o.method="POST";o.headers={"Content-Type":"application/json"};o.body=JSON.stringify(body)}
+  var r=await fetch(API+"?action="+action,o),d=await r.json().catch(function(){return{}});
+  if(!r.ok)throw new Error(d.error||"Request failed");return d}
+
+/* ---------- Segregation guide ---------- */
+var CAT={
+bio:{n:"Biodegradable",c:"var(--bio)",t:"Food scraps, leaves, and garden waste. Compost it or put it in the green bin."},
+rec:{n:"Recyclable",c:"var(--rec)",t:"Clean plastics, paper, metal, and glass. Rinse and dry before putting in the blue bin."},
+res:{n:"Residual",c:"var(--res)",t:"Items that cannot be composted or recycled. Place in the black bin for disposal."},
+haz:{n:"Special / Hazardous",c:"var(--haz)",t:"Never mix with regular trash. Bring to the barangay hazardous drop-off on Saturdays."}};
+var TIPS={bio:"Tip: make compost at home to cut your waste by almost half.",rec:"Tip: remove caps and labels, and flatten boxes to save space.",res:"Tip: reduce sachets by buying refills or bigger packs.",haz:"Tip: keep in a sealed container until drop-off day."};
+var DB=[
+["banana peel,food,rice,vegetable,fruit,leaves,leaf,egg shell,eggshell,fish bone,coffee grounds,grass,wood","bio"],
+["plastic bottle,bottle,pet,can,tin,aluminum,cardboard,carton,paper,newspaper,magazine,glass,jar,box,book","rec"],
+["battery,batteries,bulb,fluorescent,lamp,medicine,expired,syringe,needle,paint,chemical,thermometer,aerosol,electronics,phone,charger,e-waste","haz"],
+["wrapper,sachet,styro,styrofoam,diaper,napkin,tissue,cigarette,candy,chip,straw,toothbrush,broken ceramic,mask","res"]];
+function find(s){s=s.toLowerCase().trim();if(!s)return null;
+for(var i=0;i<DB.length;i++){var k=DB[i][0].split(",");for(var j=0;j<k.length;j++){if(s.indexOf(k[j])>-1||(s.length>3&&k[j].indexOf(s)>-1))return DB[i][1]}}return null}
+function check(v){var r=$("res"),k=find(v);if(!v.trim()){r.innerHTML="";return}
+if(!k){r.innerHTML='<div class="out" style="--c:var(--mut)"><b>Not sure yet</b><br>Try a simpler word like “plastic bottle,” or ask your barangay environment officer.</div>';return}
+var c=CAT[k];r.innerHTML='<div class="out" style="--c:'+c.c+'"><b>'+c.n+'</b><br>'+c.t+'<br><small>'+TIPS[k]+'</small></div>'}
+$("go").onclick=function(){check($("q").value)};
+$("q").onkeydown=function(e){if(e.key==="Enter")check($("q").value)};
+["Plastic bottle","Banana peel","Used battery","Candy wrapper","Cardboard box","Expired medicine"].forEach(function(t){var b=document.createElement("button");b.className="chip";b.textContent=t;b.onclick=function(){$("q").value=t;check(t)};$("chips").appendChild(b)});
+
+/* ---------- Schedule (edit me) ---------- */
+var SCHEDULE=[["Sunday","No collection","—"],["Monday","Biodegradable","6:00 AM"],["Tuesday","Recyclable","6:00 AM"],["Wednesday","Biodegradable","6:00 AM"],["Thursday","Residual","6:00 AM"],["Friday","Recyclable","6:00 AM"],["Saturday","Hazardous drop-off","8:00 AM"]];
+var td=new Date().getDay();
+$("sched").innerHTML=SCHEDULE.map(function(r,i){return '<tr'+(i===td?' class="today"':'')+'><td>'+r[0]+(i===td?' (today)':'')+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>'}).join("");
+$("tips").innerHTML=Object.keys(CAT).map(function(k){return '<div class="tip" style="--c:'+CAT[k].c+'"><h3>'+CAT[k].n+'</h3><p>'+CAT[k].t+'</p></div>'}).join("");
+
+/* ---------- Reports ---------- */
+var isAdmin=false;
+async function loadReports(){
+  try{var rows=await call("reports");
+    $("reps").innerHTML=rows.map(function(r){
+      var st=isAdmin?'<select data-id="'+r.id+'">'+["Received","In progress","Resolved"].map(function(o){return '<option'+(o===r.status?' selected':'')+'>'+o+'</option>'}).join("")+'</select>':esc(r.status);
+      return '<div class="rep"><b>'+esc(r.type)+'</b> · '+esc(r.location)+'<br>'+esc(r.description)+'<br><small>'+esc(r.created_at)+' · Status: </small>'+st+'</div>'}).join("")
+  }catch(e){$("reps").innerHTML='<p class="msg">Could not load reports.</p>'}}
+$("reps").onchange=async function(e){var id=e.target.getAttribute("data-id");if(!id)return;
+  try{await call("status",{id:+id,status:e.target.value})}catch(x){alert(x.message);loadReports()}};
+$("rf").onsubmit=async function(e){e.preventDefault();
+  try{await call("report",{type:$("rt").value,location:$("rl").value,description:$("rd").value});
+    this.reset();$("rmsg").textContent="Report submitted. Thank you!";loadReports()}
+  catch(x){$("rmsg").textContent=x.message}};
+
+/* ---------- Survey ---------- */
+["s1","s2","s3"].forEach(function(id){$(id).innerHTML='<option value="">Select 1–5</option>'+[1,2,3,4,5].map(function(n){return '<option>'+n+'</option>'}).join("")});
+$("sf").onsubmit=async function(e){e.preventDefault();
+  try{await call("survey",{role:$("sr").value,age_group:$("sa").value,awareness:+$("s1").value,readiness:+$("s2").value,acceptance:+$("s3").value,comments:$("sc").value});
+    this.reset();$("smsg").textContent="Thank you for answering the survey!"}
+  catch(x){$("smsg").textContent=x.message}};
+
+/* ---------- Official login ---------- */
+async function setAdmin(v){isAdmin=v;$("loginbox").hidden=v;$("adminbox").hidden=!v;
+  if(v){try{var s=await call("survey_stats");$("stats").innerHTML='<b>Survey results</b><br>Responses: '+s.n+'<br>Awareness: '+(s.awareness||"–")+' / 5<br>Readiness: '+(s.readiness||"–")+' / 5<br>Acceptance: '+(s.acceptance||"–")+' / 5'}catch(e){}}
+  loadReports()}
+$("lf").onsubmit=async function(e){e.preventDefault();
+  try{await call("login",{username:$("lu").value,password:$("lp").value});this.reset();$("lmsg").textContent="";setAdmin(true)}
+  catch(x){$("lmsg").textContent=x.message}};
+$("lo").onclick=async function(){try{await call("logout",{})}catch(e){}setAdmin(false)};
+call("me").then(function(d){setAdmin(!!d.admin)}).catch(function(){loadReports()});
+/* ---------- EcoBot ---------- */
+var hist=[];
+function addMsg(t,me){var d=document.createElement("div");d.className="m "+(me?"me":"bot");d.textContent=t;$("bm").appendChild(d);$("bm").scrollTop=$("bm").scrollHeight;return d}
+function localAnswer(t){var k=find(t);return k?CAT[k].n+": "+CAT[k].t:"I can't reach the AI right now. Try the Segregation Assistant above, or ask your barangay environment officer."}
+$("botBtn").onclick=function(){var b=$("bot");b.hidden=!b.hidden;if(!b.hidden){if(!$("bm").children.length)addMsg("Hi! I'm EcoBot 🌿 Ask me which bin an item goes in, when collection is, or how to recycle. Pwede rin sa Tagalog!");$("bi").focus()}};
+$("botX").onclick=function(){$("bot").hidden=true};
+$("bf").onsubmit=async function(e){e.preventDefault();
+  var t=$("bi").value.trim();if(!t)return;$("bi").value="";
+  addMsg(t,true);hist.push({role:"user",content:t});
+  var w=addMsg("Typing…");
+  try{
+    var r=await fetch("ai.php",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:hist.slice(-6)})});
+    var d=await r.json().catch(function(){return{}});
+    if(!r.ok||!d.reply)throw new Error(d.error||"failed");
+    w.textContent=d.reply;hist.push({role:"assistant",content:d.reply});
+  }catch(x){
+    var a=localAnswer(t);w.textContent=(x.message&&x.message.indexOf("limit")>-1)?x.message:a+"\n\n[Debug: "+x.message+"]";
+    hist.push({role:"assistant",content:w.textContent});
+  }
+  $("bm").scrollTop=$("bm").scrollHeight};
+</script>
+</body>
+</html>

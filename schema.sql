@@ -1,0 +1,30 @@
+CREATE DATABASE IF NOT EXISTS smart_barangay CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE smart_barangay;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS reports (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  type VARCHAR(40) NOT NULL,
+  location VARCHAR(120) NOT NULL,
+  description TEXT NOT NULL,
+  status ENUM('Received','In progress','Resolved') NOT NULL DEFAULT 'Received',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX (status), INDEX (created_at)
+);
+
+CREATE TABLE IF NOT EXISTS survey_responses (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  role VARCHAR(20) NOT NULL,
+  age_group VARCHAR(20) NOT NULL,
+  awareness TINYINT NOT NULL,
+  readiness TINYINT NOT NULL,
+  acceptance TINYINT NOT NULL,
+  comments VARCHAR(500) DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
